@@ -14,7 +14,7 @@ h1{
     color: lightyellow;
 }
 
-#box{
+#play-field{
     height: 400px;
     width: 600px;
     border: solid black 4px;
@@ -25,12 +25,12 @@ h1{
     display: flex;
 }
 
-#box div{
+#play-field > div{
     display: flex;
     flex-direction: column;
 }
 
-#box div div{
+#play-field > div > div{
     height: 40px;
     width: 30px;
     margin: 0%;

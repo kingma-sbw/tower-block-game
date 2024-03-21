@@ -1,116 +1,157 @@
+
 //views
 
-for(var i=0;i<20;i++){
-    document.getElementById("box").innerHTML=document.getElementById("box").innerHTML+"<div><div class='1'></div><div class='2'></div><div class='3'></div><div class='4'></div><div class='5'></div><div class='6'></div><div class='7'></div><div class='8'></div><div class='9'></div><div class='10'></div></div>"
+for (var i = 0; i < 20; i++) {
+  let cellDivs = '<div>';
+  for (let i = 1; i <= 10; i++) cellDivs += `<div class='${i}'></div>`;
+  cellDivs += '</div>';
+
+  document.getElementById("play-field").innerHTML = document.getElementById("play-field").innerHTML + cellDivs;
+}
+
+let score = 0;
+let currentRow = 10;
+let length = 10;
+let animatedBlockStart = 0;
+
+document.getElementById("start").addEventListener("click", start);
+
+function start() {
+  fillBlock(currentRow, length);
+  animateBlock(currentRow, length, animatedBlockStart);
+  document.getElementById("start").removeEventListener("click", start);
+  document.addEventListener("keypress", keyPressed);
+}
+
+function fillBlock(row, length) {
+  const rowArray = document.getElementsByClassName(row.toString())
+
+  for (var i = 0; i < length; i++) {
+    rowArray[i].style.backgroundColor = 'firebrick';
   }
-  
-  
-  var x=10;
-  var length=10;
-  var score=0;
-  var s=0;
-  
-  function start(){
-      fill_box(x,length);
-      move(x,length,s);
-      document.getElementById("start").removeAttribute("onclick");
-  }
-  
-  
-  function fill_box(row,length) {
-  
-    for(var i=0;i<length;i++){
-  
-        document.getElementsByClassName(row.toString())[i].style.backgroundColor='firebrick';
-      
+
+}
+
+// animated the current block
+let direction = 'forward';
+let timerId;
+function animateBlock(row, animatedBlockEnd, animatedBlockStart) {
+  timerId = setInterval(() => {
+    const rowArray = document.getElementsByClassName(row.toString());
+    if (animatedBlockEnd < 20 && direction == 'forward') {
+      // set last block
+      rowArray[animatedBlockEnd].style.backgroundColor = 'firebrick';
+      animatedBlockEnd++;
+      // remove first block
+      rowArray[animatedBlockStart].style.backgroundColor = '';
+      animatedBlockStart++;
     }
-    
+    // arrive at the end, turn around
+    else if (animatedBlockEnd === 20) {
+
+      animatedBlockEnd = animatedBlockStart - 1;
+      animatedBlockStart = 19;
+      direction = 'backward';
+    }
+    // arrive at the start, turn around
+    else if (animatedBlockEnd < 20 && direction == 'backward') {
+
+      rowArray[animatedBlockEnd].style.backgroundColor = 'firebrick';
+      animatedBlockEnd--;
+      rowArray[animatedBlockStart].style.backgroundColor = '';
+      animatedBlockStart--;
+      if (animatedBlockEnd == -1) {
+        animatedBlockEnd = animatedBlockStart + 1;
+        animatedBlockStart = 0;
+        direction = 'forward';
+      }
+    }
+
+  }, 100);
+}
+
+/**
+ * respone do key down
+ * @param {Event} event the event
+ */
+const keyPressed = event => {
+  if (event.key === ' ') {
+    currentRow--;
+    if (currentRow == 0) {
+      alert("you won the match !!");
+      window.location.reload();
+    }
+    animatedBlockStart = 0;
+    direction = 'forward';
+
+    clearInterval(timerId);
+    cutBlock(currentRow + 1);
+    start();
   }
-  
-  // move of block functionality
-  var id;
-  var turn ='forward';
-  function move(row,length,s){
-  
-    id=setInterval(() => {
-      if(length<20 && turn=='forward'){
-        document.getElementsByClassName(row.toString())[length].style.backgroundColor='firebrick';
-        length++;
-        document.getElementsByClassName(row.toString())[s].style.backgroundColor='';
-        s++;
-      }
-      else if(length==20){
-        length=s-1
-        s=19;
-        turn='backward';
-      }
-  
-      else if(length<20 && turn=='backward'){
-        document.getElementsByClassName(row.toString())[length].style.backgroundColor='firebrick';
-        length--;
-        document.getElementsByClassName(row.toString())[s].style.backgroundColor='';
-        s--;
-        if(length==-1){
-          length=s+1;
-          s=0;
-          turn='forward';
+}
+/**
+ * Check if two vertical adjecent blocks have the same color
+ * @param {Node} elem1 lower element
+ * @param {Node} elem2 higher element
+ * @returns true if same color
+ */
+function sameColor(elem1, elem2) {
+  const elem1Color = window.getComputedStyle(elem1).getPropertyValue("background-color");
+  const elem2Color = window.getComputedStyle(elem2).getPropertyValue("background-color");
+  return elem1Color === elem2Color;
+}
+
+/**
+ * check if an element is transparent
+ * @param {Node} elem check this element
+ * @returns true if transparant
+ */
+function isTransparent(elem) {
+  const elemColor = window.getComputedStyle(elem).getPropertyValue("background-color")
+  return elemColor == 'rgba(0, 0, 0, 0)';
+}
+
+/**
+ * get the length of the new block
+ * @param {int} block number of the active row
+ */
+function cutBlock(block) {
+  let newLength = 0;
+  if (block == 10) {
+    newLength = 10;
+  }
+  else {
+    const blockCurrentRowArray = document.getElementsByClassName(block.toString());
+    const blockNextRowArray = document.getElementsByClassName((block + 1).toString())
+    for (var i = 0; i <= 19; i++) {
+      let cellCurrentRow = blockCurrentRowArray[i];
+      let cellNextRow = blockNextRowArray[i];
+
+      if (!sameColor(cellCurrentRow, cellNextRow)) {
+
+        if (isTransparent(cellNextRow)) {
+
+          cellCurrentRow.style.backgroundColor = cellNextRow.style.backgroundColor;
+
         }
       }
-    
-    }, 100);
-  }
-  
-  
-  document.addEventListener("keypress", event =>{
-    if(event.key==='w'){
-        x=x-1;
-        if(x==0){
-          alert("you won the match !!");
-          window.location.reload();
-        }
-        s=0;
-        turn='forward';
-        clearInterval(id);
-        cutting_extra(x+1);
-        start();
-    }
-  })
-  
-  function cutting_extra(block){
-    var sum=0;
-    if(block==10){
-        sum=10;
-    }
-    else{
-      for(var i=0;i<=19;i++){
-      elem1=document.getElementsByClassName(block.toString())[i];
-      elem2=document.getElementsByClassName((block+1).toString())[i];
-  
-      if(window.getComputedStyle(elem1).getPropertyValue("background-color")!=window.getComputedStyle(elem2).getPropertyValue("background-color")){
-  
-        if(window.getComputedStyle(elem2).getPropertyValue("background-color")=='rgba(0, 0, 0, 0)'){
-  
-          elem1.style.backgroundColor=elem2.style.backgroundColor;
-  
-        }
-    }
-    else {
-      if(window.getComputedStyle(elem2).getPropertyValue("background-color")!='rgba(0, 0, 0, 0)')
-      sum++;
-    }
+      else {
+        if (!isTransparent(cellNextRow))
+          newLength++;
+      }
     }
   }
-  length=sum;
-  if(length!=0){
-    score=score+10;
-    document.getElementById("scr").innerHTML=score;
+  length = newLength;
+  if (length != 0) {
+    score = score + 10;
+    document.getElementById("scr").innerHTML = score;
   }
-  else{
+  else {
     setTimeout(() => {
-      alert("GAME OVER !! YOUR SCORE IS :- "+score);
+      alert("GAME OVER !! YOUR SCORE IS :- " + score);
       window.location.reload();
     }, 100);
-    
+
   }
-  
-  }
+
+}
